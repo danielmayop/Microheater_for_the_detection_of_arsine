@@ -1,0 +1,5 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "esp32 devkit v1")(type "KiCad")(uri "C:/footprint kicad/esp32 devkit v1")(options "")(descr ""))
+  (lib (name "esp32 devkit v1 ver 2")(type "KiCad")(uri "C:/footprint kicad/esp32 devkit v1 ver 2")(options "")(descr ""))
+)
