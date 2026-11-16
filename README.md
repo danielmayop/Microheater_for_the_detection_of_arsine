@@ -83,7 +83,11 @@ La fuente `V1` representa la salida PWM del ESP32 (pulso de 0 a 3 V, período de
 ### Etapas del circuito
 
 1. **Optoacoplador (`U1`, `R1`, `R2`).** La señal del ESP32 enciende el LED del optoacoplador a través de `R1` (330 Ω), que fija la corriente del LED. El fototransistor de salida conduce cuando el LED está encendido y `R2` (4,6 kΩ) a masa mantiene su salida en 0 V cuando el LED está apagado. La función de esta etapa es acoplar la lógica del ESP32 con la etapa de potencia sin conectarlas eléctricamente.
-2. **BJT como seguidor por emisor (`Q1`, `R4`, `R5`).** La salida del optoacoplador entrega poca corriente. `Q1` tiene el colector en `Vcc`, la base en la salida del optoacoplador y el emisor sigue a la base unos 0,7 V más abajo. Actúa como amplificador de corriente: el optoacoplador solo entrega la corriente de base, que es la de compuerta dividida por la ganancia β del transistor. `R5` (330 Ω) limita la corriente de carga de la compuerta y `R4` (10 kΩ) a masa descarga la compuerta cuando `Q1` se corta, porque un seguidor por emisor no puede absorber corriente.
+2. **BJT como seguidor por emisor (`Q1`, `R4`, `R5`).** La salida del optoacoplador es una señal débil: puede entregar muy poca corriente. El transistor `Q1` funciona como un "refuerzo" de esa señal, sin cambiarla.
+   - **Qué hace.** El optoacoplador maneja solo una corriente muy pequeña (la de la base de `Q1`), y `Q1` entrega por el emisor una corriente mucho mayor, tomada de `Vcc`, para cargar la compuerta del MOSFET.
+   - **Qué tensión entrega.** La tensión del emisor copia a la de la base, unos 0,7 V más baja. Por eso se llama "seguidor": la salida sigue a la entrada. Si el optoacoplador pone la base en alto, el emisor queda en alto; si la pone en 0 V, el emisor baja a 0 V.
+   - **`R5` (330 Ω).** Está entre el emisor y la compuerta del MOSFET y limita el pico de corriente al cargar la compuerta.
+   - **`R4` (10 kΩ).** Va de la compuerta a masa y la descarga cuando `Q1` deja de conducir, porque el seguidor solo puede entregar corriente, no absorberla. Sin `R4`, la compuerta quedaría cargada y el MOSFET no se apagaría.
 3. **MOSFET como interruptor (`M1`, `R6`, `R3`).** `M1` (IRFHM830) tiene la fuente a masa y se comporta como un interruptor: con la compuerta alta conduce y con la compuerta en 0 V se corta. La corriente la fijan `Vcc` y las resistencias en serie: `R3` (0,75 Ω) representa al microcalentador y `R6` (4,8 Ω) es la resistencia serie.
 
 ### Resultado de la simulación
