@@ -4,10 +4,9 @@ Microcalentador con control de temperatura para un sensor de arsina. El reposito
 
 | Carpeta | Contenido |
 |---|---|
-| `Codigos/` | Firmware del controlador, scripts de MATLAB para identificar el modelo y scripts de Python para el análisis de curvas |
+| `Codigos/` | Firmware del controlador y scripts de MATLAB para identificar el modelo |
 | `Kicad/` | Esquemático y placa del controlador de temperatura |
 | `LTspice/` | Simulaciones |
-| `Analisis/` | Informe completo, figuras y tablas del análisis de las curvas |
 | `Imagenes/`, `Hoja de datos/`, `paper/` | Fotos, gráficas y documentación |
 
 ## Respuesta transitoria del microcalentador (encendido y apagado)
@@ -64,7 +63,7 @@ Cada curva se ajustó con un modelo de primer orden (`Codigos/Matlab Modelo/cons
 | 40 | 9,8572 | 124,09 | 126,49 | 23,1 | `9,8572 / (124,09·s + 1)` |
 | 30 | 7,6401 | 116,94 | 140,92 | 22,901 | `7,6401 / (116,94·s + 1)` |
 
-Son los valores que entrega `main_comparacion_duty.m`. En la caja el modelo de primer orden es una aproximación: la curva tiene dos escalas de tiempo, y los `t_on`/`t_off` que usa el script no coinciden con los datos en varias corridas (ver la sección 4 del informe).
+Son los valores que entrega `main_comparacion_duty.m`. En la caja el modelo de primer orden es una aproximación: la curva tiene dos escalas de tiempo, y los `t_on`/`t_off` que usa el script no coinciden con los datos en varias corridas.
 
 El análisis completo, con el método, las tablas por duty y las limitaciones, está en [`Analisis/curvas_microcalentador.md`](Analisis/curvas_microcalentador.md). Para regenerar figuras y tablas:
 
