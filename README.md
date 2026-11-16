@@ -112,12 +112,6 @@ La simulación usa componentes distintos de los de la placa (`Kicad/Controlador_
 | Microcalentador | `R3`, 0,75 Ω | conector `Calent1` |
 | Alimentación | `V2`, 5,5 V | módulo `PS1` (MC00100) |
 
-### Observaciones
-
-- **Potencia proporcional al duty.** Como el MOSFET trabaja como interruptor, la potencia promedio en el calentador es el duty por la potencia en conducción. Esto respalda, en la simulación, el supuesto del análisis térmico de que la potencia es proporcional al duty; en la placa real falta confirmarlo midiendo tensión y corriente.
-- **La resistencia serie disipa casi toda la potencia.** Con estos valores, `R6` (`Rs1` en la placa) disipa ≈ 4,7 W mientras conduce (≈ 87 % de la potencia de la fuente) contra ≈ 0,74 W del calentador, así que conviene verificar que su potencia nominal sea suficiente.
-- **La simulación no muestra el aislamiento.** `V1` y `V2` comparten la misma masa en el esquema, por lo que se simula el acople de la señal pero no la separación eléctrica entre el ESP32 y la etapa de potencia.
-- **El barrido de duty no está activo.** El esquema incluye la directiva `.step param t_on list 0.2m 0.5m 0.8m 1m`, pero la fuente `V1` tiene el ancho de pulso fijo en `0.5m`, así que solo se simula el 50 %. Para barrer 20, 50, 80 y 100 % de duty habría que escribir `{t_on}` como ancho de pulso de la fuente.
 
 ## Controlador: on-off frente a PID
 
