@@ -195,7 +195,7 @@ El monitor serie usa el UART0 (`TX0` y `RX0`, GPIO 1 y 3) a través del puerto U
 
 La placa se diseñó en KiCad (`Kicad/Controlador_temp/`). El esquemático reúne en una sola placa la alimentación, la ESP32 DevKit V1, la etapa de potencia del microcalentador y los conectores de los sensores y de la pantalla.
 
-![Esquemático de la placa en KiCad](Imagenes/esquema%20circuito.jpg)
+![Esquemático de la placa en KiCad](Imagenes/esquematico_kicad.jpg)
 
 ### Etapas de la placa
 
