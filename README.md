@@ -178,11 +178,15 @@ La placa de desarrollo ESP32 DevKit V1 ejecuta el control de temperatura, lee lo
 
 ### Tabla de entradas y salidas
 
-Se listan solo los pines usados en el firmware (`Codigos/Arduino IDE ESP32/control_temperatura ver 2/ControlTemperatura/`).
+Se listan los pines que se usan en la placa (según el esquemático) y en el firmware (`Codigos/Arduino IDE ESP32/control_temperatura ver 2/ControlTemperatura/`). Los pines marcados como "previsto" están conectados a un conector de la placa, pero el firmware actual no los usa.
 
 | GPIO | Nombre en la placa | Función en el proyecto | Tipo | Entrada / salida |
 |---|---|---|---|---|
 | 2 | `D2` | LED de estado: encendido con el sistema activo, apagado con el sistema apagado o ante una falla (NTC inválido o sobretemperatura) | Digital | Salida |
+| 5 | `D5` | Datos del segundo sensor DHT22 (previsto) | Digital | Entrada / salida |
+| 12 | `D12` | `SO` del módulo MAX6675 (opcional, previsto) | Digital (SPI) | Entrada |
+| 13 | `D13` | `CS` del módulo MAX6675 (opcional, previsto) | Digital (SPI) | Salida |
+| 14 | `D14` | `SCK` del módulo MAX6675 (opcional, previsto) | Digital (SPI) | Salida |
 | 16 | `RX2` | `SDA` del bus I2C (400 kHz) hacia la pantalla OLED SSD1306 (dirección `0x3C`) | Digital (I2C) | Entrada / salida |
 | 17 | `TX2` | `SCL` del bus I2C hacia la pantalla OLED | Digital (I2C) | Salida |
 | 18 | `D18` | Datos del sensor DHT22 (temperatura ambiente y humedad, cada 2 s) | Digital | Entrada / salida |
@@ -190,6 +194,9 @@ Se listan solo los pines usados en el firmware (`Codigos/Arduino IDE ESP32/contr
 | 26 | `D26` | Interruptor de encendido del sistema (pull-up interno; ON = conectado a GND) | Digital | Entrada |
 | 34 | `D34` | Potenciómetro que fija el setpoint (ADC de 12 bits) | Analógico (ADC1) | Entrada |
 | 35 | `D35` | Divisor del termistor NTC de 10 kΩ, temperatura real usada por el control (ADC de 12 bits, 0 a 3,3 V) | Analógico (ADC1) | Entrada |
+| — | `3V3` | Alimentación de 3,3 V para el potenciómetro, el divisor del termistor, los pull-up, la pantalla, el MAX6675 y los DHT22 | Alimentación | Salida |
+| — | `GND` | Masa común de la placa | Alimentación | — |
+| — | `VIN` | Entrada de 5,5 V desde el módulo reductor (`Vcc`) a través del diodo `D1` | Alimentación | Entrada |
 
 El monitor serie usa el UART0 (`TX0` y `RX0`, GPIO 1 y 3) a través del puerto USB, y el Bluetooth (BLE) es interno del módulo, por lo que no ocupan pines de la placa.
 
