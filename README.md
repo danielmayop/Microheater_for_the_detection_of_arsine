@@ -33,8 +33,6 @@ Se midió la temperatura del microcalentador con duty de 30, 40, 50, 60, 70, 80,
 
 **¿Es no lineal?** Levemente. En el rango medio de duty el calentamiento es prácticamente lineal, y la no linealidad aparece sobre todo en el enfriamiento al aire libre, de forma leve y sistemática. Dentro de la caja no se detecta con la resolución de estos datos, aunque eso no alcanza para afirmar que sea lineal. En la práctica, un modelo lineal de primer orden sirve como primera aproximación del calentador al aire libre, pero conviene tener presente que su respuesta de enfriamiento cambia algo con la temperatura.
 
-**A tener en cuenta.** La corrida de mayor duty al aire libre se aparta del resto: arranca más lenta que la de un duty menor, y con los datos actuales no se puede saber si es un efecto real o una diferencia entre corridas. Hay una sola corrida por duty y no se midió la potencia entregada, que se supone proporcional al duty; repetir las mediciones y registrar tensión y corriente permitiría confirmarlo.
-
 ### Función de transferencia
 
 Cada curva se ajustó con un modelo de primer orden (`Codigos/Matlab Modelo/construir_tf.m`):
@@ -95,22 +93,6 @@ La fuente `V1` representa la salida PWM del ESP32 (pulso de 0 a 3 V, período de
 ![Tensión y corriente en el calentador](Imagenes/lt_pwm_graf.jpg)
 
 La traza verde es la tensión sobre `R3` (el calentador) y la azul la corriente que lo atraviesa, durante 10 ms (10 períodos). Son pulsos cuadrados con el mismo período y el mismo ancho que la señal de entrada: la corriente es cero con el PWM en bajo y se mantiene constante, en un valor cercano a 1 A, con el PWM en alto. Es decir, las tres etapas transmiten el PWM sin deformarlo de forma apreciable a esta escala.
-
-### Ejemplo de cálculo (50 % de duty)
-
-Para los parámetros del optoacoplador se toma como referencia la hoja de datos del 4N35 (`Hoja de datos/4N35.PDF`); el modelo 4N25 de la simulación puede diferir. Para el BJT se supone β ≈ 100 y `Vbe` ≈ 0,7 V.
-
-1. **LED del optoacoplador.** Con `Vf` ≈ 1,2 V (valor típico del 4N35), `IF = (3 V − 1,2 V) / 330 Ω ≈ 5,5 mA`.
-2. **Salida del optoacoplador.** El fototransistor satura con `Vce(sat)` ≈ 0,3 V como máximo, así que la base de `Q1` llega a `5,5 V − 0,3 V ≈ 5,2 V`. Mantener esa tensión en `R2` exige `5,2 V / 4,6 kΩ ≈ 1,1 mA`, un 20 % de `IF`; el 4N35 garantiza una relación de transferencia de corriente de al menos 100 % (a `IF` = 10 mA), por lo que hay margen.
-3. **Compuerta.** `Vg ≈ 5,2 V − 0,7 V ≈ 4,5 V`. La corriente de base de `Q1` es `(4,5 V / 10 kΩ) / 101 ≈ 4,5 µA`, despreciable frente a los 1,1 mA de `R2`.
-4. **Corriente del calentador.** Con el MOSFET conduciendo, `I = Vcc / (R3 + R6) = 5,5 V / 5,55 Ω ≈ 0,99 A` (se desprecia la resistencia del MOSFET) y la tensión en el calentador es `0,99 A × 0,75 Ω ≈ 0,74 V`.
-5. **Potencias.** En conducción: calentador `I²·R3 ≈ 0,74 W`, resistencia serie `I²·R6 ≈ 4,7 W`, total entregado por la fuente `Vcc·I ≈ 5,5 W`. Con 50 % de duty se promedia la mitad: ≈ 0,37 W en el calentador, ≈ 2,4 W en `R6` y ≈ 2,7 W en la fuente.
-
-| Magnitud | Cálculo | Gráfica de la simulación |
-|---|---|---|
-| Corriente en el calentador (conduciendo) | 0,99 A | ≈ 0,99 A |
-| Tensión en el calentador (conduciendo) | 0,74 V | ≈ 0,74 V |
-| Período de la señal | 1 ms | 1 ms |
 
 ### Simulación y placa
 
