@@ -136,3 +136,60 @@ La simulación usa componentes distintos de los de la placa (`Kicad/Controlador_
 - **La resistencia serie disipa casi toda la potencia.** Con estos valores, `R6` (`Rs1` en la placa) disipa ≈ 4,7 W mientras conduce (≈ 87 % de la potencia de la fuente) contra ≈ 0,74 W del calentador, así que conviene verificar que su potencia nominal sea suficiente.
 - **La simulación no muestra el aislamiento.** `V1` y `V2` comparten la misma masa en el esquema, por lo que se simula el acople de la señal pero no la separación eléctrica entre el ESP32 y la etapa de potencia.
 - **El barrido de duty no está activo.** El esquema incluye la directiva `.step param t_on list 0.2m 0.5m 0.8m 1m`, pero la fuente `V1` tiene el ancho de pulso fijo en `0.5m`, así que solo se simula el 50 %. Para barrer 20, 50, 80 y 100 % de duty habría que escribir `{t_on}` como ancho de pulso de la fuente.
+
+## Controlador: on-off frente a PID
+
+Para mantener el microcalentador en la temperatura de consigna (*setpoint*) se compararon dos estrategias de control habituales: el controlador **on-off** (con histéresis) y el controlador **PID**. En este proyecto se eligió el **on-off**.
+
+### Descripción breve
+
+**On-off (todo o nada).** La salida solo tiene dos estados: encendida o apagada. En calefacción se enciende por debajo del setpoint y se apaga por encima, por lo que la temperatura oscila de forma continua alrededor de la consigna. Para evitar conmutaciones muy rápidas se agrega una **histéresis** (una banda alrededor del setpoint): una banda más ancha reduce la frecuencia de conmutación pero aumenta la oscilación y el sobreimpulso. Es el esquema más simple y barato, y se usa donde no se necesita gran precisión ([x-engineer](https://x-engineer.org/?p=3309), [Omega](https://es.omega.com/temperature/Z/controlleroperation.html)).
+
+**PID.** Calcula una salida continua combinando tres acciones sobre el error: la proporcional (reacciona al error actual), la integral (elimina el error permanente acumulándolo) y la derivativa (anticipa la tendencia). Es más preciso y estable que el on-off, pero exige **sintonizar** tres parámetros y es más complejo ([Omega](https://es.omega.com/temperature/Z/controlleroperation.html)). En sistemas térmicos lentos o con retardo, la acción integral puede acumularse mientras la salida está saturada (*integral windup*) y provocar sobreimpulso y oscilaciones, por lo que requiere medidas anti-windup y una sintonización conservadora ([Industrial Monitor Direct](https://industrialmonitordirect.com/blogs/knowledgebase/pid-integral-windup-fix-for-slow-temperature-control-systems)).
+
+### Comparación
+
+| Aspecto | On-off con histéresis | PID |
+|---|---|---|
+| Salida | Solo encendido o apagado | Continua (duty variable) |
+| Precisión en el setpoint | Oscila dentro de una banda | Alta, sin error permanente (con acción integral) |
+| Sobreimpulso | Presente, crece con la histéresis | Puede minimizarse si está bien sintonizado |
+| Complejidad | Muy baja (una comparación) | Mayor: tres parámetros y anti-windup |
+| Sintonización | Solo el ancho de la histéresis | Requiere un modelo o ensayos |
+| Conmutación | Frecuente | Salida más suave |
+| Recursos | Mínimos | Cálculo periódico con tiempo de muestreo fijo |
+
+### Ventajas y desventajas para este microcalentador
+
+**Ventajas del on-off en esta aplicación**
+
+- **Implementación mínima.** En el firmware (`control.cpp`) el control es una comparación con histéresis de 1 °C: se enciende por debajo de `setpoint - 1 °C`, se apaga al llegar al `setpoint` y mantiene su estado dentro de la banda. No necesita tiempo de muestreo fijo ni parámetros que sintonizar.
+- **Sin desgaste por conmutación.** La conmutación se hace con un MOSFET (etapa de amplificación de corriente) y no con un relé mecánico, así que la conmutación frecuente no es un problema de vida útil, que es la principal desventaja habitual del on-off.
+- **Dinámica lenta y relativamente simple.** El microcalentador responde como un sistema de primer orden con constante de tiempo de ≈ 1 min al aire libre, por lo que una banda de 1 °C da ciclos de conmutación de varios segundos o más y no a una frecuencia que el MOSFET no pueda seguir.
+- **Calentamiento más rápido.** Al encender con el 100 % de duty el sistema sube con la máxima velocidad que permite la etapa de potencia, sin esperar a que un integrador acumule.
+- **Seguridad sencilla.** Junto con el límite de 80 °C del firmware y el apagado ante lectura inválida del NTC, el comportamiento es fácil de verificar.
+
+**Desventajas del on-off en esta aplicación**
+
+- **Rizado de temperatura.** La temperatura nunca queda fija: oscila alrededor del setpoint con una amplitud que depende de la histéresis y de la inercia térmica. Si la detección de arsina fuera sensible a pequeñas variaciones de la temperatura del sensor, esto sería la limitación principal.
+- **Sobreimpulso por el retardo.** El NTC no está exactamente sobre la resistencia calefactora, y en la caja el sistema tiene dos escalas de tiempo (≈ 1 min y ≈ 5–9 min). Al apagar, la temperatura puede seguir subiendo un poco antes de bajar, y el calor remanente ocasiona que el exceso sobre la consigna dependa de las condiciones de la medición.
+- **Potencia máxima en cada ciclo.** Siempre se calienta con la potencia total (≈ 4,7 W disipados en `R6` según la simulación), lo que genera más estrés térmico y un consumo pico mayor que un control que reduce la potencia al acercarse al setpoint.
+- **No aprovecha el PWM.** La etapa de potencia ya permite variar el duty (PWM de 1 kHz y 8 bits en el GPIO 25), pero en el esquema on-off solo se usan los valores 0 y 255.
+
+**Qué aportaría un PID**
+
+- Una salida suave: al acercarse a la temperatura deseada reduciría el duty y el rizado sería mucho menor, con error permanente nulo.
+- Un mejor desempeño ante perturbaciones como cambios de temperatura ambiente, caja o corrientes de aire, que modifican las pérdidas térmicas.
+- Como costo, habría que sintonizarlo y proteger la acción integral contra *windup* durante el calentamiento inicial, donde el actuador está saturado al 100 %.
+
+### Elección para el proyecto
+
+Se eligió el **controlador on-off con histéresis** porque la aplicación no exige regulación de alta precisión, la implementación es muy simple y robusta en el ESP32 y la conmutación del MOSFET no sufre desgaste. A cambio se acepta un rizado de temperatura acotado por la histéresis de 1 °C.
+
+Si más adelante se necesitara menor rizado, los modelos identificados en la sección de la función de transferencia (ganancia estática ≈ 0,40 °C por % de duty y constante de tiempo ≈ 60 s al aire libre) y el PWM ya disponible en el hardware permitirían sintonizar un PID sin modificar la placa.
+
+### Fuentes
+
+- [On-off control system (x-engineer.org)](https://x-engineer.org/?p=3309)
+- [Controladores on-off, proporcionales y PID (Omega)](https://es.omega.com/temperature/Z/controlleroperation.html)
+- [PID integral windup en sistemas lentos de temperatura (Industrial Monitor Direct)](https://industrialmonitordirect.com/blogs/knowledgebase/pid-integral-windup-fix-for-slow-temperature-control-systems)
