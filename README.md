@@ -27,10 +27,13 @@ Se midió la temperatura del microcalentador con duty de 30, 40, 50, 60, 70, 80,
 
 ### Conclusiones del transitorio
 
-- **Encendido.** Las curvas suben a distintas velocidades porque el valor final es distinto: la pendiente inicial y el aumento final de temperatura son proporcionales al duty (≈ 0,40 °C por cada 1 % de duty al aire libre y ≈ 0,26 °C en la caja). El tiempo de respuesta no depende del duty. Al aire libre se comporta como un sistema de primer orden con τ ≈ 60–66 s. En la caja hay dos escalas de tiempo (≈ 60–80 s y ≈ 300–550 s) y a los 10 min todavía no llegó al régimen estacionario.
-- **Apagado.** En valores absolutos lo más caliente se enfría más rápido, pero eso también ocurre en un sistema lineal. Normalizando, al aire libre el enfriamiento es más rápido cuanto mayor es la temperatura: el tiempo a la mitad baja de 48 s (ΔT de 12 °C) a 36 s (ΔT de 37 °C). En la caja no se detecta esa dependencia, y el enfriamiento tiene una cola lenta: tras unos 5 min la temperatura sigue 1,2–4,5 °C por encima de la inicial.
-- **¿Es no lineal?** Levemente. Entre 30 y 90 % de duty el calentamiento es prácticamente lineal y el enfriamiento al aire libre muestra una no linealidad leve y sistemática. En la caja no se detecta no linealidad con la resolución de estos datos, aunque no se puede afirmar que sea lineal.
-- **A tener en cuenta.** La corrida de 100 % al aire libre se aparta del resto (es más lenta que la de 90 % durante los primeros 3 min) y hay una sola corrida por duty, así que falta repetirla para saber si es real. Tampoco se midió la potencia: se supone proporcional al duty.
+**Encendido.** Las curvas suben a velocidades distintas porque cada duty apunta a una temperatura final distinta: cuanto mayor es el duty, más alta es la temperatura que se busca alcanzar y más rápido sube al principio. Sin embargo, el tiempo que tarda el microcalentador en responder es esencialmente el mismo sin importar el duty: todas las curvas tienen la misma forma y lo único que cambia es su escala. Por eso, al aire libre, el calentamiento se describe bien como un sistema de primer orden con una única constante de tiempo, y el aumento final de temperatura crece de forma proporcional al duty. Dentro de la caja el sensor ve un calentamiento menor y bastante más lento, y la respuesta ya no tiene un solo tiempo característico: hay una parte rápida, parecida a la del calentador al aire libre, y otra mucho más lenta que sigue evolucionando cuando se apaga el calentador, de modo que nunca llega a un régimen estacionario durante la medición.
+
+**Apagado.** Al apagar, lo más caliente se enfría más rápido en valores absolutos, pero eso también le pasa a cualquier sistema lineal, así que por sí solo no demuestra no linealidad. Lo que sí la muestra es comparar las curvas normalizadas: al aire libre, cuanto más caliente está el microcalentador, más rápido se enfría en proporción, algo esperable si las pérdidas de calor hacia el ambiente crecen con la temperatura. Dentro de la caja no se ve esa dependencia, y el enfriamiento tiene una cola lenta: pasados varios minutos desde el apagado la temperatura todavía no volvió a la inicial, por lo que el registro es corto para fijar bien su constante de tiempo de enfriamiento.
+
+**¿Es no lineal?** Levemente. En el rango medio de duty el calentamiento es prácticamente lineal, y la no linealidad aparece sobre todo en el enfriamiento al aire libre, de forma leve y sistemática. Dentro de la caja no se detecta con la resolución de estos datos, aunque eso no alcanza para afirmar que sea lineal. En la práctica, un modelo lineal de primer orden sirve como primera aproximación del calentador al aire libre, pero conviene tener presente que su respuesta de enfriamiento cambia algo con la temperatura.
+
+**A tener en cuenta.** La corrida de mayor duty al aire libre se aparta del resto: arranca más lenta que la de un duty menor, y con los datos actuales no se puede saber si es un efecto real o una diferencia entre corridas. Hay una sola corrida por duty y no se midió la potencia entregada, que se supone proporcional al duty; repetir las mediciones y registrar tensión y corriente permitiría confirmarlo.
 
 ### Función de transferencia
 
@@ -38,13 +41,6 @@ Cada curva se ajustó con un modelo de primer orden (`Codigos/Matlab Modelo/cons
 
 - Encendido: `G_on(s) = K_on / (τ_on·s + 1)`, con `K_on` en °C (el aumento final de temperatura para ese duty) y `τ_on` en s.
 - Apagado: `G_off(s) = 1 / (τ_off·s + 1)`, con `τ_off` en s.
-
-**Para 100 % de duty**
-
-| | Encendido | Apagado |
-|---|---|---|
-| Aire libre | `G_on(s) = 36,693 / (81,355·s + 1)` | `G_off(s) = 1 / (56,548·s + 1)` |
-| Caja | `G_on(s) = 26,89 / (116,03·s + 1)` | `G_off(s) = 1 / (130,21·s + 1)` |
 
 **Parte resistiva, aire libre**
 
