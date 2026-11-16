@@ -207,3 +207,11 @@ La placa se diseñó en KiCad (`Kicad/Controlador_temp/`). El esquemático reún
 - **Pantalla.** El conector `J2` lleva `GND`, `3V3` y las líneas `SDA` y `SCL` del bus I2C hacia la pantalla LCD/OLED.
 - **Termocupla (opcional).** El conector `J3` está previsto para un módulo MAX6675, conectado por SPI (`SCK`, `SO`, `CS`) a los GPIO 14, 12 y 13. Es opcional y el firmware actual no lo usa.
 - **Sensores de temperatura y humedad.** Los conectores `J5` y el de `SENS-1` permiten conectar dos sensores DHT (en el esquemático figuran como DHT22; el DHT21 usa el mismo protocolo de un solo hilo), con resistencias de pull-up de 10 kΩ a 3,3 V (`R4` y `R7`) sobre las líneas `DHT22_1` (GPIO 18) y `DHT22_2` (GPIO 5). El firmware actual solo lee el primero.
+
+### Diseño y placa real
+
+![Diseño 3D y placa real, caras superior e inferior](Imagenes/placa_2x2.jpg)
+
+Arriba se ve el diseño 3D generado en KiCad y abajo la placa fabricada, por la cara superior (izquierda) y la cara inferior (derecha). Las fotos de la placa real están giradas 90° para compararlas con el diseño.
+
+La placa real respeta el diseño: mantiene la distribución de las etapas, las pistas de las dos caras, las perforaciones de montaje y la serigrafía (nombres de conectores, referencias de componentes y la inscripción "PROYECTO 2026"). El módulo reductor figura serigrafiado como `STEP DOWN LM2596` y el módulo de la ESP32 tiene el recorte para su antena. Las fotos corresponden a la placa sin componentes soldados, con todas las perforaciones y pads listos para el montaje.
