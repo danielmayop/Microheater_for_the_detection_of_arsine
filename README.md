@@ -239,3 +239,25 @@ La placa se diseñó en KiCad (`Kicad/Controlador_temp/`). El esquemático reún
 Arriba se ve el diseño 3D generado en KiCad y abajo la placa fabricada, por la cara superior (izquierda) y la cara inferior (derecha). Las fotos de la placa real están giradas 90° para compararlas con el diseño.
 
 La placa real respeta el diseño: mantiene la distribución de las etapas, las pistas de las dos caras, las perforaciones de montaje y la serigrafía (nombres de conectores, referencias de componentes y la inscripción "PROYECTO 2026"). El módulo reductor figura serigrafiado como `STEP DOWN LM2596` y el módulo de la ESP32 tiene el recorte para su antena. Las fotos corresponden a la placa sin componentes soldados, con todas las perforaciones y pads listos para el montaje.
+
+## Conexión a la página
+
+Los datos que envía la ESP32 se visualizan en una página web, **GIAQA Monitoreo Bluetooth**, diseñada en Lovable. La ESP32 transmite por Bluetooth de baja energía (BLE) y la página se conecta directamente desde el navegador mediante Web Bluetooth.
+
+**Enlace a la página:** [https://id-preview--22e80b2b-a717-4908-83b7-207b0a4aaa5b.lovable.app](https://id-preview--22e80b2b-a717-4908-83b7-207b0a4aaa5b.lovable.app)
+
+**Proyecto en Lovable:** [BLE Dashboard](https://lovable.dev/projects/22e80b2b-a717-4908-83b7-207b0a4aaa5b)
+
+![Página de inicio de GIAQA Monitoreo Bluetooth](Imagenes/pagina_web.png)
+
+### Qué hace la página
+
+- **Mediciones.** Permite conectar la ESP32 por Bluetooth, recibir las variables en tiempo real (temperatura real, temperatura y humedad del DHT22, setpoint, estado del calentador y tiempo) y graficarlas en vivo. Incluye un registro de eventos de la conexión, el inicio y la pausa de la adquisición, y un modo de simulación para probar la página sin la placa.
+- **Procesamiento.** Ofrece herramientas para procesar y analizar los datos adquiridos.
+- **Historial y exportación.** Se pueden guardar las mediciones, revisarlas, graficarlas, renombrarlas, eliminarlas y exportarlas en formato CSV o TXT.
+- **Cuentas y mediciones compartidas.** Hay perfiles de usuario opcionales y se pueden compartir mediciones en vivo, en modo solo lectura, mediante códigos de acceso.
+- **Teoría y guías.** Tiene secciones de contenido teórico y guías de uso.
+
+### Cómo se comunica con la ESP32
+
+La ESP32 se publica como servidor BLE con el servicio *Nordic UART* (NUS). Envía los datos por notificaciones en la característica de transmisión, en mensajes con formato JSON (por ejemplo, `temperatura_real`, `setpoint`, `calentador`), y la página puede enviarle comandos por la característica de recepción. La conexión requiere un navegador con Web Bluetooth, como Chrome o Edge en escritorio o en Android.
