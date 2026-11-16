@@ -208,6 +208,35 @@ La placa se diseñó en KiCad (`Kicad/Controlador_temp/`). El esquemático reún
 - **Termocupla (opcional).** El conector `J3` está previsto para un módulo MAX6675, conectado por SPI (`SCK`, `SO`, `CS`) a los GPIO 14, 12 y 13. Es opcional y el firmware actual no lo usa.
 - **Sensores de temperatura y humedad.** Los conectores `J5` y el de `SENS-1` permiten conectar dos sensores DHT (en el esquemático figuran como DHT22; el DHT21 usa el mismo protocolo de un solo hilo), con resistencias de pull-up de 10 kΩ a 3,3 V (`R4` y `R7`) sobre las líneas `DHT22_1` (GPIO 18) y `DHT22_2` (GPIO 5). El firmware actual solo lee el primero.
 
+### Lista de componentes
+
+| Referencia | Componente | Valor / modelo | Cant. | Encapsulado | Función |
+|---|---|---|---|---|---|
+| `U1` | Placa de desarrollo | ESP32 DevKit V1 | 1 | Módulo de 2 filas de 15 pines | Control, sensores, pantalla y Bluetooth |
+| `PS1` | Módulo reductor DC-DC | MC00100 (serigrafía `STEP DOWN LM2596`) | 1 | Módulo | Reduce los 19 V de entrada a 5,5 V |
+| `U2` | Optoacoplador | 4N35 | 1 | DIP-6 | Acopla el PWM de la ESP32 a la etapa de potencia |
+| `Q1` | Transistor BJT | BD911 | 1 | TO-220 | Etapa intermedia de la amplificación de corriente |
+| `Q2` | MOSFET de canal N | IRLZ44N | 1 | TO-220 | Conmuta la corriente del microcalentador |
+| `D1` | Diodo | Tipo Schottky según el esquemático (símbolo `D_Shockley`) | 1 | DO-41 | Entre `Vcc` y `VIN` de la ESP32 |
+| `C2` | Capacitor electrolítico | 1000 µF | 1 | Radial, 12,5 mm de diámetro | Filtro de la salida del reductor |
+| `R1`, `R3`, `R6` | Resistencia | 330 Ω | 3 | Axial | `R1`: pull-up del pulsador `Btn1`; `R3`: LED del optoacoplador; `R6`: compuerta del MOSFET |
+| `R4`, `R7` | Resistencia | 10 kΩ | 2 | Axial | Pull-up de las líneas de los sensores DHT |
+| `R5` | Resistencia | 10 kΩ | 1 | Axial | Resistencia a masa del emisor del BJT |
+| `R2` | Resistencia | 100 kΩ | 1 | Axial | Divisor de tensión del termistor |
+| `Rs1` | Resistencia de potencia | 4,8 Ω | 1 | Axial de potencia (50 mm) | En serie con el microcalentador |
+| `preset2` | Potenciómetro ajustable (*trimmer*) | 5 kΩ | 1 | Bourns 3296W vertical | Resistencia del fototransistor del 4N35 |
+| `RV1` | Potenciómetro | Lineal, de eje, tipo Alps RK163 | 1 | Horizontal | Fija la temperatura de consigna |
+| `J1` | Conector *jack* DC | Jack de alimentación | 1 | Horizontal | Entrada de 19 V |
+| `Btn2` | Bornera de 2 pines | Para pulsador | 1 | Phoenix MKDS 5,08 mm | Enciende y apaga la alimentación de la placa |
+| `Btn1` | Bornera de 2 pines | Para pulsador | 1 | Phoenix MKDS 5,08 mm | Enciende y apaga el sistema de control (GPIO 26) |
+| `Calent1` | Bornera de 2 pines | Para el microcalentador | 1 | Phoenix MKDS 5,08 mm | Conexión del microcalentador |
+| `J4` | Conector | Termistor | 1 | Tira de 2 pines, 2,54 mm | Conexión del termistor NTC |
+| `J2` | Conector | Pantalla LCD/OLED | 1 | JST XH de 5 pines | `GND`, `3V3`, `SDA`, `SCL` |
+| `J3` | Conector | Módulo MAX6675 (opcional) | 1 | JST XH de 5 pines | `GND`, `3V3`, `SCK`, `SO`, `CS` |
+| `J5` | Conector | Sensores DHT22 | 1 | JST XH de 5 pines | Líneas de datos de los dos sensores DHT |
+| `SENS-1` | Sensor de temperatura y humedad | DHT22 | 1 | Huella `SENSOR-DHT11` | Sensor DHT |
+| `H1` a `H4` | Perforación de montaje | M3, 3,2 mm | 4 | — | Fijación de la placa |
+
 ### Diseño y placa real
 
 ![Diseño 3D y placa real, caras superior e inferior](Imagenes/placa_2x2.jpg)
