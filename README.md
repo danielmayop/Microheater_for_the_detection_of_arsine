@@ -31,8 +31,6 @@ Se midió la temperatura del microcalentador con duty de 30, 40, 50, 60, 70, 80,
 
 **Apagado.** Al apagar, lo más caliente se enfría más rápido en valores absolutos, pero eso también le pasa a cualquier sistema lineal, así que por sí solo no demuestra no linealidad. Lo que sí la muestra es comparar las curvas normalizadas: al aire libre, cuanto más caliente está el microcalentador, más rápido se enfría en proporción, algo esperable si las pérdidas de calor hacia el ambiente crecen con la temperatura. Dentro de la caja no se ve esa dependencia, y el enfriamiento tiene una cola lenta: pasados varios minutos desde el apagado la temperatura todavía no volvió a la inicial, por lo que el registro es corto para fijar bien su constante de tiempo de enfriamiento.
 
-**¿Es no lineal?** Levemente. En el rango medio de duty el calentamiento es prácticamente lineal, y la no linealidad aparece sobre todo en el enfriamiento al aire libre, de forma leve y sistemática. Dentro de la caja no se detecta con la resolución de estos datos, aunque eso no alcanza para afirmar que sea lineal. En la práctica, un modelo lineal de primer orden sirve como primera aproximación del calentador al aire libre, pero conviene tener presente que su respuesta de enfriamiento cambia algo con la temperatura.
-
 ### Función de transferencia
 
 Cada curva se ajustó con un modelo de primer orden (`Codigos/Matlab Modelo/construir_tf.m`):
