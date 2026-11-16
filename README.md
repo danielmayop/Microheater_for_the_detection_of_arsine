@@ -169,3 +169,58 @@ Si más adelante se necesitara menor rizado, los modelos identificados en la sec
 - [On-off control system (x-engineer.org)](https://x-engineer.org/?p=3309)
 - [Controladores on-off, proporcionales y PID (Omega)](https://es.omega.com/temperature/Z/controlleroperation.html)
 - [PID integral windup en sistemas lentos de temperatura (Industrial Monitor Direct)](https://industrialmonitordirect.com/blogs/knowledgebase/pid-integral-windup-fix-for-slow-temperature-control-systems)
+
+## Análisis de la ESP32 DevKit V1
+
+La placa de desarrollo ESP32 DevKit V1 es la que ejecuta el control de temperatura, lee los sensores, maneja la pantalla, genera el PWM de la etapa de potencia y transmite los datos por Bluetooth.
+
+### Componentes de la placa
+
+| Componente | Descripción | Función |
+|---|---|---|
+| Módulo ESP32-WROOM-32 | Microcontrolador de doble núcleo Xtensa LX6 de hasta 240 MHz, con Wi-Fi y Bluetooth (clásico y BLE), 520 KB de SRAM y flash externa de 4 MB | Ejecuta el firmware y comunica por Bluetooth |
+| Conversor USB-UART | CP2102 o CH340, según el fabricante de la placa | Programación y monitor serie desde la PC |
+| Regulador de 3,3 V | Tipo AMS1117-3.3 | Alimenta el módulo desde los 5 V del USB o del pin `VIN` |
+| Conector micro-USB | Alimentación y datos | Alimenta la placa y la conecta a la PC |
+| Botón `EN` | Reinicio | Reinicia el microcontrolador |
+| Botón `BOOT` | Conectado al GPIO 0 | Pone la placa en modo de programación |
+| LED de alimentación | Rojo | Indica que la placa está alimentada |
+| LED de usuario | Azul, en el GPIO 2 | Indicador programable (se usa como LED de estado) |
+| Pines (2 filas de 15) | `3V3`, `GND`, `VIN` y los GPIO | Conexión con el resto del circuito |
+
+Los componentes del regulador y del conversor USB-UART pueden variar entre clones de esta placa.
+
+### Tabla de entradas y salidas
+
+Los GPIO 34, 35, 36 y 39 son solo de entrada y no tienen resistencias internas de pull-up ni de pull-down. Todos los GPIO con salida pueden generar PWM (periférico LEDC). Los ADC2 no se pueden usar mientras está activo el Wi-Fi; este proyecto usa Bluetooth. En la columna de función se indica el uso que se le da en este proyecto; "Libre" significa que no se usa.
+
+| GPIO | Nombre en la placa | Función | Tipo | Entrada / salida |
+|---|---|---|---|---|
+| 0 | `D0` | Libre (pin de arranque, botón `BOOT`) | Digital, analógico (ADC2), PWM | Entrada / salida |
+| 1 | `TX0` | UART0 TX (monitor serie por USB) | Digital, PWM | Entrada / salida |
+| 2 | `D2` | LED de estado del sistema (LED azul de la placa) | Digital, analógico (ADC2), PWM | Entrada / salida |
+| 3 | `RX0` | UART0 RX (monitor serie por USB) | Digital, PWM | Entrada / salida |
+| 4 | `D4` | Libre | Digital, analógico (ADC2), PWM | Entrada / salida |
+| 5 | `D5` | Libre | Digital, PWM | Entrada / salida |
+| 12 | `D12` | Libre (pin de arranque) | Digital, analógico (ADC2), PWM | Entrada / salida |
+| 13 | `D13` | Libre | Digital, analógico (ADC2), PWM | Entrada / salida |
+| 14 | `D14` | Libre | Digital, analógico (ADC2), PWM | Entrada / salida |
+| 15 | `D15` | Libre (pin de arranque) | Digital, analógico (ADC2), PWM | Entrada / salida |
+| 16 | `RX2` | `SDA` del bus I2C de la pantalla OLED | Digital, PWM | Entrada / salida |
+| 17 | `TX2` | `SCL` del bus I2C de la pantalla OLED | Digital, PWM | Entrada / salida |
+| 18 | `D18` | Datos del sensor DHT22 | Digital, PWM | Entrada / salida |
+| 19 | `D19` | Libre | Digital, PWM | Entrada / salida |
+| 21 | `D21` | Libre (I2C `SDA` por defecto) | Digital, PWM | Entrada / salida |
+| 22 | `D22` | Libre (I2C `SCL` por defecto) | Digital, PWM | Entrada / salida |
+| 23 | `D23` | Libre | Digital, PWM | Entrada / salida |
+| 25 | `D25` | Señal PWM de 1 kHz hacia el optoacoplador (control del calentador) | Digital, analógico (ADC2 y DAC1), PWM | Entrada / salida |
+| 26 | `D26` | Interruptor de encendido del sistema (con pull-up interno; ON = a GND) | Digital, analógico (ADC2 y DAC2), PWM | Entrada / salida |
+| 27 | `D27` | Libre | Digital, analógico (ADC2), PWM | Entrada / salida |
+| 32 | `D32` | Libre | Digital, analógico (ADC1), PWM | Entrada / salida |
+| 33 | `D33` | Libre | Digital, analógico (ADC1), PWM | Entrada / salida |
+| 34 | `D34` | Potenciómetro del setpoint | Analógico (ADC1) | Solo entrada |
+| 35 | `D35` | Termistor NTC (temperatura real) | Analógico (ADC1) | Solo entrada |
+| 36 | `VP` | Libre | Analógico (ADC1) | Solo entrada |
+| 39 | `VN` | Libre | Analógico (ADC1) | Solo entrada |
+
+Los GPIO 6 a 11 están conectados a la memoria flash del módulo y no se deben usar. Los nombres de los pines y qué GPIO están disponibles pueden variar según el fabricante de la placa.
