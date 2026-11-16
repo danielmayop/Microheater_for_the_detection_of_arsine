@@ -75,3 +75,64 @@ El análisis completo, con el método, las tablas por duty y las limitaciones, e
 ```
 python "Codigos/Python Analisis/figuras_analisis.py" . Analisis
 ```
+
+## Etapa de amplificación de corriente
+
+El ESP32 genera la señal PWM (en el firmware: GPIO 25, 1 kHz, 8 bits de resolución), pero no puede entregar la corriente que necesita el microcalentador. Por eso la señal pasa por tres etapas en cascada: un **optoacoplador**, un **transistor bipolar (BJT)** y un **MOSFET** que conmuta la corriente del calentador.
+
+![Circuito simulado en LTspice](Imagenes/lt_pwm.jpg)
+
+La fuente `V1` representa la salida PWM del ESP32 (pulso de 0 a 3 V, período de 1 ms, 0,5 ms en alto, es decir 50 % de duty) y `V2` es la alimentación `Vcc` de 5,5 V.
+
+### Etapas del circuito
+
+1. **Optoacoplador (`U1`, `R1`, `R2`).** La señal del ESP32 enciende el LED del optoacoplador a través de `R1` (330 Ω), que fija la corriente del LED. El fototransistor de salida conduce cuando el LED está encendido y `R2` (4,6 kΩ) a masa mantiene su salida en 0 V cuando el LED está apagado. La función de esta etapa es acoplar la lógica del ESP32 con la etapa de potencia sin conectarlas eléctricamente.
+2. **BJT como seguidor por emisor (`Q1`, `R4`, `R5`).** La salida del optoacoplador entrega poca corriente. `Q1` tiene el colector en `Vcc`, la base en la salida del optoacoplador y el emisor sigue a la base unos 0,7 V más abajo. Actúa como amplificador de corriente: el optoacoplador solo entrega la corriente de base, que es la de compuerta dividida por la ganancia β del transistor. `R5` (330 Ω) limita la corriente de carga de la compuerta y `R4` (10 kΩ) a masa descarga la compuerta cuando `Q1` se corta, porque un seguidor por emisor no puede absorber corriente.
+3. **MOSFET como interruptor (`M1`, `R6`, `R3`).** `M1` (IRFHM830) tiene la fuente a masa y se comporta como un interruptor: con la compuerta alta conduce y con la compuerta en 0 V se corta. La corriente la fijan `Vcc` y las resistencias en serie: `R3` (0,75 Ω) representa al microcalentador y `R6` (4,8 Ω) es la resistencia serie.
+
+### Resultado de la simulación
+
+![Tensión y corriente en el calentador](Imagenes/lt_pwm_graf.jpg)
+
+La traza verde es la tensión sobre `R3` (el calentador) y la azul la corriente que lo atraviesa, durante 10 ms (10 períodos). Son pulsos cuadrados con el mismo período y el mismo ancho que la señal de entrada: la corriente es cero con el PWM en bajo y se mantiene constante, en un valor cercano a 1 A, con el PWM en alto. Es decir, las tres etapas transmiten el PWM sin deformarlo de forma apreciable a esta escala.
+
+### Ejemplo de cálculo (50 % de duty)
+
+Para los parámetros del optoacoplador se toma como referencia la hoja de datos del 4N35 (`Hoja de datos/4N35.PDF`); el modelo 4N25 de la simulación puede diferir. Para el BJT se supone β ≈ 100 y `Vbe` ≈ 0,7 V.
+
+1. **LED del optoacoplador.** Con `Vf` ≈ 1,2 V (valor típico del 4N35), `IF = (3 V − 1,2 V) / 330 Ω ≈ 5,5 mA`.
+2. **Salida del optoacoplador.** El fototransistor satura con `Vce(sat)` ≈ 0,3 V como máximo, así que la base de `Q1` llega a `5,5 V − 0,3 V ≈ 5,2 V`. Mantener esa tensión en `R2` exige `5,2 V / 4,6 kΩ ≈ 1,1 mA`, un 20 % de `IF`; el 4N35 garantiza una relación de transferencia de corriente de al menos 100 % (a `IF` = 10 mA), por lo que hay margen.
+3. **Compuerta.** `Vg ≈ 5,2 V − 0,7 V ≈ 4,5 V`. La corriente de base de `Q1` es `(4,5 V / 10 kΩ) / 101 ≈ 4,5 µA`, despreciable frente a los 1,1 mA de `R2`.
+4. **Corriente del calentador.** Con el MOSFET conduciendo, `I = Vcc / (R3 + R6) = 5,5 V / 5,55 Ω ≈ 0,99 A` (se desprecia la resistencia del MOSFET) y la tensión en el calentador es `0,99 A × 0,75 Ω ≈ 0,74 V`.
+5. **Potencias.** En conducción: calentador `I²·R3 ≈ 0,74 W`, resistencia serie `I²·R6 ≈ 4,7 W`, total entregado por la fuente `Vcc·I ≈ 5,5 W`. Con 50 % de duty se promedia la mitad: ≈ 0,37 W en el calentador, ≈ 2,4 W en `R6` y ≈ 2,7 W en la fuente.
+
+| Magnitud | Cálculo | Gráfica de la simulación |
+|---|---|---|
+| Corriente en el calentador (conduciendo) | 0,99 A | ≈ 0,99 A |
+| Tensión en el calentador (conduciendo) | 0,74 V | ≈ 0,74 V |
+| Período de la señal | 1 ms | 1 ms |
+
+### Simulación y placa
+
+La simulación usa componentes distintos de los de la placa (`Kicad/Controlador_temp/`), con la misma topología:
+
+| Función | Simulación (LTspice) | Placa (KiCad) |
+|---|---|---|
+| Entrada | `V1`, pulso de 0 a 3 V, 1 kHz | PWM del ESP32 (GPIO 25) |
+| Optoacoplador | `U1`, 4N25 | `U2`, 4N35 |
+| Resistencia del LED | `R1`, 330 Ω | `R3`, 330 Ω |
+| Resistencia a masa del fototransistor | `R2`, 4,6 kΩ | `preset2`, trimmer de 5 kΩ |
+| BJT | `Q1`, 2N3904 | `Q1`, BD911 |
+| Resistencia a masa del emisor | `R4`, 10 kΩ | `R5`, 10 kΩ |
+| Resistencia de compuerta | `R5`, 330 Ω | `R6`, 330 Ω |
+| MOSFET | `M1`, IRFHM830 | `Q2`, IRLZ44N |
+| Resistencia serie | `R6`, 4,8 Ω | `Rs1`, 4,8 Ω |
+| Microcalentador | `R3`, 0,75 Ω | conector `Calent1` |
+| Alimentación | `V2`, 5,5 V | módulo `PS1` (MC00100) |
+
+### Observaciones
+
+- **Potencia proporcional al duty.** Como el MOSFET trabaja como interruptor, la potencia promedio en el calentador es el duty por la potencia en conducción. Esto respalda, en la simulación, el supuesto del análisis térmico de que la potencia es proporcional al duty; en la placa real falta confirmarlo midiendo tensión y corriente.
+- **La resistencia serie disipa casi toda la potencia.** Con estos valores, `R6` (`Rs1` en la placa) disipa ≈ 4,7 W mientras conduce (≈ 87 % de la potencia de la fuente) contra ≈ 0,74 W del calentador, así que conviene verificar que su potencia nominal sea suficiente.
+- **La simulación no muestra el aislamiento.** `V1` y `V2` comparten la misma masa en el esquema, por lo que se simula el acople de la señal pero no la separación eléctrica entre el ESP32 y la etapa de potencia.
+- **El barrido de duty no está activo.** El esquema incluye la directiva `.step param t_on list 0.2m 0.5m 0.8m 1m`, pero la fuente `V1` tiene el ancho de pulso fijo en `0.5m`, así que solo se simula el 50 %. Para barrer 20, 50, 80 y 100 % de duty habría que escribir `{t_on}` como ancho de pulso de la fuente.
