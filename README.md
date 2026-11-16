@@ -65,12 +65,6 @@ Cada curva se ajustó con un modelo de primer orden (`Codigos/Matlab Modelo/cons
 
 Son los valores que entrega `main_comparacion_duty.m`. En la caja el modelo de primer orden es una aproximación: la curva tiene dos escalas de tiempo, y los `t_on`/`t_off` que usa el script no coinciden con los datos en varias corridas.
 
-El análisis completo, con el método, las tablas por duty y las limitaciones, está en [`Analisis/curvas_microcalentador.md`](Analisis/curvas_microcalentador.md). Para regenerar figuras y tablas:
-
-```
-python "Codigos/Python Analisis/figuras_analisis.py" . Analisis
-```
-
 ## Etapa de amplificación de corriente
 
 El ESP32 genera la señal PWM (en el firmware: GPIO 25, 1 kHz, 8 bits de resolución), pero no puede entregar la corriente que necesita el microcalentador. Por eso la señal pasa por tres etapas en cascada: un **optoacoplador**, un **transistor bipolar (BJT)** y un **MOSFET** que conmuta la corriente del calentador.
