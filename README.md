@@ -190,3 +190,20 @@ Se listan solo los pines usados en el firmware (`Codigos/Arduino IDE ESP32/contr
 | 35 | `D35` | Divisor del termistor NTC de 10 kΩ, temperatura real usada por el control (ADC de 12 bits, 0 a 3,3 V) | Analógico (ADC1) | Entrada |
 
 El monitor serie usa el UART0 (`TX0` y `RX0`, GPIO 1 y 3) a través del puerto USB, y el Bluetooth (BLE) es interno del módulo, por lo que no ocupan pines de la placa.
+
+## Diseño PCB
+
+La placa se diseñó en KiCad (`Kicad/Controlador_temp/`). El esquemático reúne en una sola placa la alimentación, la ESP32 DevKit V1, la etapa de potencia del microcalentador y los conectores de los sensores y de la pantalla.
+
+![Esquemático de la placa en KiCad](Imagenes/esquema%20circuito.jpg)
+
+### Etapas de la placa
+
+- **Alimentación.** La placa se alimenta con 19 V a través de un conector *jack* (`J1`). El pulsador `Btn2` está en serie con la entrada y enciende y apaga la alimentación de toda la placa. Un módulo reductor DC-DC (`PS1`, MC00100) baja los 19 V a 5,5 V (red `Vcc`), con un capacitor de 1000 µF (`C2`) en la salida. Esa tensión alimenta la etapa de potencia y, a través de un diodo Schottky (`D1`), el pin `VIN` de la ESP32, que genera los 3,3 V (`3V3`) para los sensores y la pantalla.
+- **Microcontrolador.** La ESP32 DevKit V1 (`U1`) ejecuta el control de temperatura. El pulsador `Btn1` (con `R1` de 330 Ω) está conectado al GPIO 26 (`boton1`) y enciende y apaga el sistema de control. Los pines que usa el firmware están en la sección anterior.
+- **Etapa de amplificación de corriente.** Es la que se describió en la sección anterior: el PWM del GPIO 25 pasa por el optoacoplador 4N35 (`U2`), un BJT BD911 (`Q1`) y un MOSFET IRLZ44N (`Q2`), que conmuta la corriente del microcalentador conectado al terminal `Calent1` en serie con `Rs1` de 4,8 Ω.
+- **Consigna de temperatura.** El potenciómetro `RV1`, alimentado con 3,3 V, entrega al GPIO 34 (`potenc`) la tensión que fija la temperatura a la que se quiere llevar el microcalentador.
+- **Medición de temperatura.** El conector `J4` recibe el termistor, que junto con la resistencia `R2` de 100 kΩ forma un divisor de tensión cuya salida va al GPIO 35 (`D35`).
+- **Pantalla.** El conector `J2` lleva `GND`, `3V3` y las líneas `SDA` y `SCL` del bus I2C hacia la pantalla LCD/OLED.
+- **Termocupla (opcional).** El conector `J3` está previsto para un módulo MAX6675, conectado por SPI (`SCK`, `SO`, `CS`) a los GPIO 14, 12 y 13. Es opcional y el firmware actual no lo usa.
+- **Sensores de temperatura y humedad.** Los conectores `J5` y el de `SENS-1` permiten conectar dos sensores DHT (en el esquemático figuran como DHT22; el DHT21 usa el mismo protocolo de un solo hilo), con resistencias de pull-up de 10 kΩ a 3,3 V (`R4` y `R7`) sobre las líneas `DHT22_1` (GPIO 18) y `DHT22_2` (GPIO 5). El firmware actual solo lee el primero.
